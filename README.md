@@ -1,6 +1,6 @@
-# ⚙️Config Library [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Exunys.Config-Library&right_color=grey)](https://github.com/Exunys/Config-Library)
+# ⚙️Config Library [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Lvk777.Config-Library&right_color=grey)](https://github.com/Lvk777/Config-Library)
 
-| [Library](https://github.com/Exunys/Config-Library/blob/main/Main.lua) | [Install](https://github.com/Exunys/Config-Library#Install) | [Documentation](https://github.com/Exunys/Config-Library#Documentation) | [Examples](https://github.com/Exunys/Config-Library#Examples) | [Contact Information](https://github.com/Exunys/Config-Library#Contact-Information) |
+| [Library](https://github.com/Lvk777/Config-Library/blob/main/Main.lua) | [Install](https://github.com/Lvk777/Config-Library#Install) | [Documentation](https://github.com/Lvk777/Config-Library#Documentation) | [Examples](https://github.com/Lvk777/Config-Library#Examples) | [Contact Information](https://github.com/Lvk777/Config-Library#Contact-Information) |
 | :---: | :---: | :---: | :---: | :---: |
 
 This library allows you to save the settings of your script in the easiest way possible. This library handles converting of datatypes like *Color3* into *strings* in the way so the table can be encoded into JSON format without any `null` values.
@@ -30,7 +30,7 @@ Your script executor must support the following filesystem functions in order fo
 You can load this library into your script's environment by copying the code below.
 
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Config-Library/main/Main.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Config-Library/main/Main.lua"))()
 ```
 
 # 📑Documentation
@@ -193,7 +193,7 @@ Output:
 # 📝Examples
 ### Saving a configuration:
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Config-Library/main/Main.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Config-Library/main/Main.lua"))()
 
 local ESP_Settings = {
   TextColor = Color3.fromRGB(255, 0, 0),
@@ -209,7 +209,7 @@ Library:SaveConfig("My Cool Hub/Config.json", ESP_Settings)
 
 ### Loading a configuration:
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Config-Library/main/Main.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Config-Library/main/Main.lua"))()
 
 local ESP_Settings = {}
 
@@ -217,12 +217,10 @@ ESP_Settings = Library:LoadConfig("My Cool Hub/Config.json")
 ```
 ##
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Config-Library/main/Main.lua"))():SaveConfig("test.json", {b = "c", d = {e = "f", g = {h = "i", j = {"k"}}}})
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Config-Library/main/Main.lua"))():SaveConfig("test.json", {b = "c", d = {e = "f", g = {h = "i", j = {"k"}}}})
 ```
 ->
 ```json
 {"b":"c","d":{"e":"f","g":{"h":"i","j":["k"]}}}
 ```
-# 📧Contact Information
-- **[Discord](https://discord.com/users/611111398818316309)**
-- **[E-Mail](mailto:exunys@gang.email)**
+
