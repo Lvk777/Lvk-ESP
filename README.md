@@ -82,7 +82,7 @@ You can reuse or integrate this script or any system from this project into your
 
 First of all, to implement the module in your script's environment you must use the function `loadstring` like below:
 ```lua
-local ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Lvk-ESP/main/src/ESP.lua"))()
+local ESPLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Lvk-ESP/main/src/ESP.lua?token=GHSAT0AAAAAACXIOVKE6M7PCRTLZVOOOFKSZW74DMA"))()
 -- ESPLibrary and getgenv().LvkDeveloperESP is equivalent.
 ```
 The code above loads the module's environment in your script executor's global environment meaning it will be achievable across every script.
@@ -93,7 +93,7 @@ The table loaded into the exploit's global environment by the module has a [*met
 ```lua
 LvkDeveloperESP()
 -- or
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Lvk-ESP/main/src/ESP.lua"))()()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Lvk777/Lvk-ESP/main/src/ESP.lua?token=GHSAT0AAAAAACXIOVKE6M7PCRTLZVOOOFKSZW74DMA"))()()
 ```
 This is a pointer to the `Load` method. Loading the module this way would be a faster alternative.
 ```lua
