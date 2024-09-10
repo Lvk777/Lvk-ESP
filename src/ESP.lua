@@ -1,8 +1,6 @@
 --[[
-
 	Universal ESP Module by Lvk © CC0 1.0 Universal (2023 - 2024)
 	https://github.com/Lvk777
-
 ]]
 
 --// Caching
