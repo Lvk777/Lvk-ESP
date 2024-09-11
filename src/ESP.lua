@@ -138,11 +138,6 @@ else
 	warn("Lvk_ESP > Your exploit does not support this module's optimizations! The visuals might be laggy and decrease performance.")
 end
 
---// Variables
-
-local Inf, Nan, Loaded, CrosshairParts = 1 / 0, 0 / 0, false, {}
-
---// Checking for multiple processes
 
 if LvkDeveloperESP and LvkDeveloperESP.Exit then
 	LvkDeveloperESP:Exit()
@@ -194,35 +189,6 @@ getgenv().LvkDeveloperESP = {
 			DisplayTool = true
 		},
 
-		Tracer = {
-			Enabled = true,
-			RainbowColor = false,
-			RainbowOutlineColor = false,
-			Position = 1, -- 1 = Bottom; 2 = Center; 3 = Mouse
-
-			Transparency = 1,
-			Thickness = 1,
-			Color = Color3fromRGB(255, 255, 255),
-
-			Outline = true,
-			OutlineColor = Color3fromRGB(0, 0, 0)
-		},
-
-		HeadDot = {
-			Enabled = true,
-			RainbowColor = false,
-			RainbowOutlineColor = false,
-
-			Color = Color3fromRGB(255, 255, 255),
-			Transparency = 1,
-			Thickness = 1,
-			NumSides = 30,
-			Filled = false,
-
-			OutlineColor = Color3fromRGB(0, 0, 0),
-			Outline = true
-		},
-
 		Box = {
 			Enabled = true,
 			RainbowColor = false,
@@ -249,50 +215,7 @@ getgenv().LvkDeveloperESP = {
 
 			OutlineColor = Color3fromRGB(0, 0, 0),
 			Outline = true
-		},
-
-		Crosshair = {
-			Enabled = true,
-			RainbowColor = false,
-			RainbowOutlineColor = false,
-			TStyled = false,
-			Position = 1, -- 1 = Mouse; 2 = Center
-
-			Size = 12,
-			GapSize = 6,
-			Rotation = 0,
-
-			Rotate = false,
-			RotateClockwise = true,
-			RotationSpeed = 5,
-
-			PulseGap = false,
-			PulsingStep = 10,
-			PulsingSpeed = 5,
-			PulsingBounds = {4, 8}, -- {...}[1] => GapSize Min; {...}[2] => GapSize Max
-
-			Color = Color3fromRGB(0, 255, 0),
-			Thickness = 1,
-			Transparency = 1,
-
-			OutlineColor = Color3fromRGB(0, 0, 0),
-			Outline = true,
-
-			CenterDot = {
-				Enabled = true,
-				RainbowColor = false,
-				RainbowOutlineColor = false,
-
-				Radius = 2,
-
-				Color = Color3fromRGB(0, 255, 0),
-				Transparency = 1,
-				Thickness = 1,
-				NumSides = 60,
-				Filled = false,
-
-				OutlineColor = Color3fromRGB(0, 0, 0),
-				Outline = true
+			
 			}
 		}
 	},
@@ -462,109 +385,6 @@ local UpdatingFunctions = {
 		end
 	end,
 
-	Tracer = function(Entry, TracerObject, TracerOutlineObject)
-		local Settings = Environment.Properties.Tracer
-
-		local Position, Size, OnScreen = CoreFunctions.CalculateParameters(Entry)
-
-		SetRenderProperty(TracerObject, "Visible", OnScreen)
-		SetRenderProperty(TracerOutlineObject, "Visible", OnScreen and Settings.Outline)
-
-		if GetRenderProperty(TracerObject, "Visible") then
-			for Index, Value in next, Settings do
-				if Index == "Color" then
-					continue
-				end
-
-				if not pcall(GetRenderProperty, TracerObject, Index) then
-					continue
-				end
-
-				SetRenderProperty(TracerObject, Index, Value)
-			end
-
-			SetRenderProperty(TracerObject, "Color", CoreFunctions.GetColor(Entry.Object, Settings.RainbowColor and CoreFunctions.GetRainbowColor() or Settings.Color))
-
-			local CameraViewportSize = __index(CurrentCamera, "ViewportSize")
-
-			if Settings.Position == 1 then
-				SetRenderProperty(TracerObject, "From", Vector2new(CameraViewportSize.X / 2, CameraViewportSize.Y))
-			elseif Settings.Position == 2 then
-				SetRenderProperty(TracerObject, "From", CameraViewportSize / 2)
-			elseif Settings.Position == 3 then
-				SetRenderProperty(TracerObject, "From", GetMouseLocation())
-			else
-				Settings.Position = 1
-			end
-
-			SetRenderProperty(TracerObject, "To", Vector2new(Position.X + (Size.X / 2), Position.Y + Size.Y))
-
-			if Settings.Outline then
-				SetRenderProperty(TracerOutlineObject, "Color", Settings.RainbowOutlineColor and CoreFunctions.GetRainbowColor() or Settings.OutlineColor)
-				SetRenderProperty(TracerOutlineObject, "Thickness", Settings.Thickness + 1)
-				SetRenderProperty(TracerOutlineObject, "Transparency", Settings.Transparency)
-
-				SetRenderProperty(TracerOutlineObject, "From", GetRenderProperty(TracerObject, "From"))
-				SetRenderProperty(TracerOutlineObject, "To", GetRenderProperty(TracerObject, "To"))
-			end
-		end
-	end,
-
-	HeadDot = function(Entry, CircleObject, CircleOutlineObject)
-		local Settings = Environment.Properties.HeadDot
-
-		local Character = Entry.IsAPlayer and __index(Entry.Object, "Character") or __index(Entry.Object, "Parent")
-		local Head = Character and FindFirstChild(Character, "Head")
-
-		if not Head then
-			SetRenderProperty(CircleObject, "Visible", false)
-			SetRenderProperty(CircleOutlineObject, "Visible", false)
-
-			return
-		end
-
-		local HeadCFrame, HeadSize = __index(Head, "CFrame"), __index(Head, "Size")
-
-		local Vector, OnScreen = WorldToViewportPoint(HeadCFrame.Position)
-		local Top, Bottom = WorldToViewportPoint((HeadCFrame * CFramenew(0, HeadSize.Y / 2, 0)).Position), WorldToViewportPoint((HeadCFrame * CFramenew(0, -HeadSize.Y / 2, 0)).Position)
-
-		SetRenderProperty(CircleObject, "Visible", OnScreen)
-		SetRenderProperty(CircleOutlineObject, "Visible", OnScreen and Settings.Outline)
-
-		if GetRenderProperty(CircleObject, "Visible") then
-			for Index, Value in next, Settings do
-				if stringfind(Index, "Color") then
-					continue
-				end
-
-				if not pcall(GetRenderProperty, CircleObject, Index) then
-					continue
-				end
-
-				SetRenderProperty(CircleObject, Index, Value)
-
-				if Settings.Outline then
-					SetRenderProperty(CircleOutlineObject, Index, Value)
-				end
-			end
-
-			SetRenderProperty(CircleObject, "Color", CoreFunctions.GetColor(Entry.Object, Settings.RainbowColor and CoreFunctions.GetRainbowColor() or Settings.Color))
-
-			SetRenderProperty(CircleObject, "Position", CoreFunctions.ConvertVector(Vector))
-			SetRenderProperty(CircleObject, "Radius", mathabs((Top - Bottom).Y) - 3)
-
-			if Settings.Outline then
-				SetRenderProperty(CircleOutlineObject, "Color", Settings.RainbowOutlineColor and CoreFunctions.GetRainbowColor() or Settings.OutlineColor)
-
-				SetRenderProperty(CircleOutlineObject, "Thickness", Settings.Thickness + 1)
-				SetRenderProperty(CircleOutlineObject, "Transparency", Settings.Transparency)
-
-				SetRenderProperty(CircleOutlineObject, "Position", GetRenderProperty(CircleObject, "Position"))
-				SetRenderProperty(CircleOutlineObject, "Radius", GetRenderProperty(CircleObject, "Radius"))
-			end
-		end
-	end,
-
 	Box = function(Entry, BoxObject, BoxOutlineObject)
 		local Settings = Environment.Properties.Box
 
@@ -725,98 +545,6 @@ local CreatingFunctions = {
 		end)
 	end,
 
-	Tracer = function(Entry)
-		local Allowed = Entry.Allowed
-
-		if type(Allowed) == "table" and type(Allowed.Tracer) == "boolean" and not Allowed.Tracer then
-			return
-		end
-
-		local Settings = Environment.Properties.Tracer
-
-		local Tracer = Drawingnew("Line")
-		local TracerObject = Tracer.__OBJECT
-
-		SetRenderProperty(TracerObject, "ZIndex", Degrade and -2 or -1)
-
-		local TracerOutline = Drawingnew("Line")
-		local TracerOutlineObject = TracerOutline.__OBJECT
-
-		SetRenderProperty(TracerObject, "ZIndex", Degrade and 1 or 0)
-
-		Entry.Visuals.Tracer[1] = Tracer
-		Entry.Visuals.Tracer[2] = TracerOutline
-
-		Entry.Connections.Tracer = Connect(__index(RunService, Environment.DeveloperSettings.UpdateMode), function()
-			local Functionable, Ready = pcall(function()
-				return Environment.Settings.Enabled and Settings.Enabled and Entry.Checks.Ready
-			end)
-
-			if not Functionable then
-				pcall(Tracer.Remove, Tracer)
-				pcall(TracerOutline.Remove, TracerOutline)
-
-				return Disconnect(Entry.Connections.Tracer)
-			end
-
-			if Ready then
-				UpdatingFunctions.Tracer(Entry, TracerObject, TracerOutlineObject)
-			else
-				SetRenderProperty(TracerObject, "Visible", false)
-				SetRenderProperty(TracerOutlineObject, "Visible", false)
-			end
-		end)
-	end,
-
-	HeadDot = function(Entry)
-		local Allowed = Entry.Allowed
-
-		if type(Allowed) == "table" and type(Allowed.HeadDot) == "boolean" and not Allowed.HeadDot then
-			return
-		end
-
-		if not Entry.IsAPlayer and not Entry.PartHasCharacter then
-			if not FindFirstChild(__index(Entry.Object, "Parent"), "Head") then
-				return
-			end
-		end
-
-		local Settings = Environment.Properties.HeadDot
-
-		local Circle = Drawingnew("Circle")
-		local CircleObject = Circle.__OBJECT
-
-		SetRenderProperty(CircleObject, "ZIndex", 2)
-
-		local CircleOutline = Drawingnew("Circle")
-		local CircleOutlineObject = CircleOutline.__OBJECT
-
-		SetRenderProperty(CircleOutlineObject, "ZIndex", 1)
-
-		Entry.Visuals.HeadDot[1] = Circle
-		Entry.Visuals.HeadDot[2] = CircleOutline
-
-		Entry.Connections.HeadDot = Connect(__index(RunService, Environment.DeveloperSettings.UpdateMode), function()
-			local Functionable, Ready = pcall(function()
-				return Environment.Settings.Enabled and Settings.Enabled and Entry.Checks.Ready
-			end)
-
-			if not Functionable then
-				pcall(Circle.Remove, Circle)
-				pcall(CircleOutline.Remove, CircleOutline)
-
-				return Disconnect(Entry.Connections.HeadDot)
-			end
-
-			if Ready then
-				UpdatingFunctions.HeadDot(Entry, CircleObject, CircleOutlineObject)
-			else
-				SetRenderProperty(CircleObject, "Visible", false)
-				SetRenderProperty(CircleOutlineObject, "Visible", false)
-			end
-		end)
-	end,
-
 	Box = function(Entry)
 		local Allowed = Entry.Allowed
 
@@ -907,211 +635,7 @@ local CreatingFunctions = {
 				SetRenderProperty(OutlineObject, "Visible", false)
 			end
 		end)
-	end,
-
-	Crosshair = function()
-		if CrosshairParts.LeftLine then
-			return
-		end
-
-		local ServiceConnections = Environment.UtilityAssets.ServiceConnections
-		local DeveloperSettings = Environment.DeveloperSettings
-		local Settings = Environment.Properties.Crosshair
-
-		CrosshairParts = {
-			LeftLine = Drawingnew("Line"),
-			RightLine = Drawingnew("Line"),
-			TopLine = Drawingnew("Line"),
-			BottomLine = Drawingnew("Line"),
-			CenterDot = Drawingnew("Circle"),
-
-			OutlineLeftLine = Drawingnew("Line"),
-			OutlineRightLine = Drawingnew("Line"),
-			OutlineTopLine = Drawingnew("Line"),
-			OutlineBottomLine = Drawingnew("Line"),
-			OutlineCenterDot = Drawingnew("Circle")
-		}
-
-		local RenderObjects = {}
-
-		for Index, Value in next, CrosshairParts do
-			SetRenderProperty(Value.__OBJECT, "Visible", false) -- For some exploits, the parts are visible at the top left corner of the screen (when the crosshair is disabled upon execution).
-			RenderObjects[Index] = Value.__OBJECT
-		end
-
-		for Index, Value in next, RenderObjects do
-			SetRenderProperty(Value, "ZIndex", stringfind(Index, "Outline") and 9 or 10)
-		end
-
-		local Axis, Rotation, GapSize = GetMouseLocation(), Settings.Rotation, Settings.GapSize
-
-		ServiceConnections.UpdateCrosshairProperties, ServiceConnections.UpdateCrosshair = Connect(__index(RunService, DeveloperSettings.UpdateMode), function()
-			if Settings.Enabled and Environment.Settings.Enabled then
-				if Settings.Position == 1 then
-					Axis = GetMouseLocation()
-				elseif Settings.Position == 2 then
-					Axis = __index(CurrentCamera, "ViewportSize") / 2
-				else
-					Settings.Position = 1
-				end
-
-				if Settings.PulseGap then
-					Settings.PulsingStep = mathclamp(Settings.PulsingStep, 0, 24)
-					Settings.PulsingSpeed = mathclamp(Settings.PulsingSpeed, 1, 20)
-
-					local PulsingStep = mathclamp(Settings.PulsingStep, unpack(Settings.PulsingBounds))
-
-					GapSize = mathabs(mathsin(tick() * Settings.PulsingSpeed) * PulsingStep)
-					GapSize = mathclamp(GapSize, unpack(Settings.PulsingBounds))
-				else
-					GapSize = Settings.GapSize
-				end
-
-				if Settings.Rotate then
-					Settings.RotationSpeed = mathclamp(Settings.RotationSpeed, 1, 20)
-
-					Rotation = mathdeg(tick() * Settings.RotationSpeed)
-					Rotation = Settings.RotateClockwise and Rotation or -Rotation
-				else
-					Rotation = Settings.Rotation
-				end
-
-				GapSize = mathclamp(GapSize, 0, 24)
-			end
-		end), Connect(__index(RunService, DeveloperSettings.UpdateMode), function()
-			if Environment.Settings.Enabled then
-				local AxisX, AxisY, Size = Axis.X, Axis.Y, Settings.Size
-
-				for ObjectName, RenderObject in next, RenderObjects do
-					for Index, _ in next, {Color = true, Transparency = true, Thickness = true} do
-						local Value = Settings[Index]
-
-						if (Index == "Color" or Index == "Thickness") and (stringfind(ObjectName, "Outline") or stringfind(ObjectName, "CenterDot")) then
-							continue
-						end
-
-						if Index == "Color" and not (stringfind(ObjectName, "Outline") or stringfind(ObjectName, "CenterDot")) then
-							Value = Settings.RainbowColor and CoreFunctions.GetRainbowColor() or Value
-						end
-
-						if not pcall(GetRenderProperty, RenderObject, Index) then
-							continue
-						end
-
-						SetRenderProperty(RenderObject, Index, Value)
-					end
-				end
-
-				--// Left Line
-
-				SetRenderProperty(RenderObjects.LeftLine, "Visible", Settings.Enabled)
-
-				SetRenderProperty(RenderObjects.LeftLine, "From", Vector2new(AxisX - (mathcos(mathrad(Rotation)) * GapSize), AxisY - (mathsin(mathrad(Rotation)) * GapSize)))
-				SetRenderProperty(RenderObjects.LeftLine, "To", Vector2new(AxisX - (mathcos(mathrad(Rotation)) * (Size + GapSize)), AxisY - (mathsin(mathrad(Rotation)) * (Size + GapSize))))
-
-				--// Right Line
-
-				SetRenderProperty(RenderObjects.RightLine, "Visible", Settings.Enabled)
-
-				SetRenderProperty(RenderObjects.RightLine, "From", Vector2new(AxisX + (mathcos(mathrad(Rotation)) * GapSize), AxisY + (mathsin(mathrad(Rotation)) * GapSize)))
-				SetRenderProperty(RenderObjects.RightLine, "To", Vector2new(AxisX + (mathcos(mathrad(Rotation)) * (Size + GapSize)), AxisY + (mathsin(mathrad(Rotation)) * (Size + GapSize))))
-
-				--// Top Line
-
-				SetRenderProperty(RenderObjects.TopLine, "Visible", Settings.Enabled and not Settings.TStyled)
-
-				SetRenderProperty(RenderObjects.TopLine, "From", Vector2new(AxisX - (mathsin(mathrad(-Rotation)) * GapSize), AxisY - (mathcos(mathrad(-Rotation)) * GapSize)))
-				SetRenderProperty(RenderObjects.TopLine, "To", Vector2new(AxisX - (mathsin(mathrad(-Rotation)) * (Size + GapSize)), AxisY - (mathcos(mathrad(-Rotation)) * (Size + GapSize))))
-
-				--// Bottom Line
-
-				SetRenderProperty(RenderObjects.BottomLine, "Visible", Settings.Enabled)
-
-				SetRenderProperty(RenderObjects.BottomLine, "From", Vector2new(AxisX + (mathsin(mathrad(-Rotation)) * GapSize), AxisY + (mathcos(mathrad(-Rotation)) * GapSize)))
-				SetRenderProperty(RenderObjects.BottomLine, "To", Vector2new(AxisX + (mathsin(mathrad(-Rotation)) * (Size + GapSize)), AxisY + (mathcos(mathrad(-Rotation)) * (Size + GapSize))))
-
-				--// Outlines
-
-				if Settings.Outline then
-					local Table = {"LeftLine", "RightLine", "TopLine", "BottomLine"}
-
-					for _Index = 1, 4 do
-						local Index = Table[_Index]
-						local Value, _Value = RenderObjects["Outline"..Index], RenderObjects[Index]
-
-						SetRenderProperty(Value, "Visible", GetRenderProperty(_Value, "Visible"))
-						SetRenderProperty(Value, "Thickness", GetRenderProperty(_Value, "Thickness") + 1)
-						SetRenderProperty(Value, "Color", Settings.RainbowOutlineColor and CoreFunctions.GetRainbowColor() or Settings.OutlineColor)
-
-						local From, To = GetRenderProperty(_Value, "From"), GetRenderProperty(_Value, "To")
-
-						if not (Settings.Rotate and Settings.RotationSpeed <= 5) then
-							if Index == "TopLine" then
-								SetRenderProperty(Value, "From", Vector2new(From.X, From.Y + 1))
-								SetRenderProperty(Value, "To", Vector2new(To.X, To.Y - 1))
-							elseif Index == "BottomLine" then
-								SetRenderProperty(Value, "From", Vector2new(From.X, From.Y - 1))
-								SetRenderProperty(Value, "To", Vector2new(To.X, To.Y + 1))
-							elseif Index == "LeftLine" then
-								SetRenderProperty(Value, "From", Vector2new(From.X + 1, From.Y))
-								SetRenderProperty(Value, "To", Vector2new(To.X - 1, To.Y))
-							elseif Index == "RightLine" then
-								SetRenderProperty(Value, "From", Vector2new(From.X - 1, From.Y))
-								SetRenderProperty(Value, "To", Vector2new(To.X + 1, To.Y))
-							end
-						else
-							SetRenderProperty(Value, "From", From)
-							SetRenderProperty(Value, "To", To)
-						end
-					end
-				else
-					for _, Index in next, {"LeftLine", "RightLine", "TopLine", "BottomLine"} do
-						SetRenderProperty(RenderObjects["Outline"..Index], "Visible", false)
-					end
-				end
-
-				--// Center Dot
-
-				local CenterDot = RenderObjects.CenterDot
-				local CenterDotSettings = Settings.CenterDot
-
-				SetRenderProperty(CenterDot, "Visible", Settings.Enabled and CenterDotSettings.Enabled)
-				SetRenderProperty(RenderObjects.OutlineCenterDot, "Visible", Settings.Enabled and CenterDotSettings.Enabled and CenterDotSettings.Outline)
-
-				if GetRenderProperty(CenterDot, "Visible") then
-					for Index, Value in next, CenterDotSettings do
-						if Index == "Color" then
-							Value = CenterDotSettings.RainbowColor and CoreFunctions.GetRainbowColor() or Value
-						end
-
-						if not pcall(GetRenderProperty, CenterDot, Index) then
-							continue
-						end
-
-						SetRenderProperty(CenterDot, Index, Value)
-
-						if Index ~= "Color" or Index ~= "Thickness" then
-							SetRenderProperty(RenderObjects.OutlineCenterDot, Index, Value)
-						end
-					end
-
-					SetRenderProperty(CenterDot, "Position", Axis)
-
-					if CenterDotSettings.Outline then
-						SetRenderProperty(RenderObjects.OutlineCenterDot, "Thickness", GetRenderProperty(CenterDot, "Thickness") + 1)
-						SetRenderProperty(RenderObjects.OutlineCenterDot, "Color", CenterDotSettings.RainbowOutlineColor and CoreFunctions.GetRainbowColor() or CenterDotSettings.OutlineColor)
-
-						SetRenderProperty(RenderObjects.OutlineCenterDot, "Position", Axis)
-					end
-				end
-			else
-				for _, RenderObject in next, RenderObjects do
-					SetRenderProperty(RenderObject, "Visible", false)
-				end
-			end
-		end)
 	end
-}
 
 local UtilityFunctions = {
 	InitChecks = function(self, Entry)
@@ -1252,10 +776,8 @@ local UtilityFunctions = {
 
 			Visuals = {
 				ESP = {},
-				Tracer = {},
 				Box = {},
 				HealthBar = {},
-				HeadDot = {}
 			},
 
 			Connections = {}
@@ -1291,8 +813,6 @@ local UtilityFunctions = {
 			until Entry.Checks.Ready
 			
 			CreatingFunctions.ESP(Entry)
-			CreatingFunctions.Tracer(Entry)
-			CreatingFunctions.HeadDot(Entry)
 			CreatingFunctions.Box(Entry)
 			CreatingFunctions.HealthBar(Entry)
 
@@ -1398,25 +918,6 @@ local LoadESP = function()
 	Disconnect(ServiceConnections.SetStretch); ServiceConnections.SetStretch = Connect(__index(RunService, Environment.DeveloperSettings.UpdateMode), CoreFunctions.SetStretch)
 end
 
-setmetatable(Environment, {
-	__call = function()
-		if Loaded then
-			return
-		end
-
-		Loaded = true
-		return LoadESP(), CreatingFunctions.Crosshair()
-	end
-})
-
-pcall(spawn, function()
-	if Environment.Settings.LoadConfigOnLaunch then
-		repeat wait(0) until Environment.LoadConfiguration
-
-		Environment:LoadConfiguration()
-	end
-end)
-
 --// Interactive User Functions
 
 Environment.UnwrapPlayers = function() -- (<void>) => <boolean> Success Status
@@ -1434,110 +935,6 @@ Environment.UnwrapPlayers = function() -- (<void>) => <boolean> Success Status
 	end
 
 	return #WrappedObjects == 0
-end
-
-Environment.UnwrapAll = function(self) -- METHOD | (<void>) => <void>
-	assert(self, "Lvk_ESP.UnwrapAll: Missing parameter #1 \"self\" <table>.")
-
-	if self.UnwrapPlayers() and CrosshairParts.LeftLine then
-		self.RemoveCrosshair()
-	end
-
-	return #self.UtilityAssets.WrappedObjects == 0 and not CrosshairParts.LeftLine
-end
-
-Environment.Restart = function(self) -- METHOD | (<void>) => <void>
-	assert(self, "Lvk_ESP.Restart: Missing parameter #1 \"self\" <table>.")
-
-	local Objects = {}
-
-	for _, Value in next, self.UtilityAssets.WrappedObjects do
-		Objects[#Objects + 1] = {Value.Hash, Value.Object, Value.Name, Value.Allowed, Value.RenderDistance}
-	end
-
-	for _, Value in next, Objects do
-		self.UnwrapObject(Value[1])
-	end
-
-	for Index, Value in next, Objects do
-		self.WrapObject(select(2, unpack(Value)))
-
-		if Index == #Objects then
-			Environment.UtilityAssets.ServiceConnections.SetStretch = Connect(__index(RunService, Environment.DeveloperSettings.UpdateMode), CoreFunctions.SetStretch)
-		end
-	end
-
-	if CrosshairParts.LeftLine then
-		self.RemoveCrosshair()
-		self.RenderCrosshair()
-	end
-end
-
-Environment.Exit = function(self) -- METHOD | (<void>) => <void>
-	assert(self, "Lvk_ESP.Exit: Missing parameter #1 \"self\" <table>.")
-
-	if self:UnwrapAll() then
-		for _, Connection in next, self.UtilityAssets.ServiceConnections do
-			pcall(Disconnect, Connection)
-		end
-
-		for _, RenderObject in next, CrosshairParts do
-			pcall(RenderObject.Remove, RenderObject)
-		end
-
-		for _, Table in next, {CoreFunctions, UpdatingFunctions, CreatingFunctions, UtilityFunctions} do
-			for FunctionName, _ in next, Table do
-				Table[FunctionName] = nil
-			end
-
-			Table = nil
-		end
-
-		for Index, _ in next, Environment do
-			getgenv().LvkDeveloperESP[Index] = nil
-		end
-
-		LoadESP = nil; Recursive = nil; Loaded = false
-
-		getgenv().LvkDeveloperESP = nil
-	end
-end
-
-Environment.WrapObject = function(...) -- (<Instance> Object[, <string> Pseudo Name, <table> Allowed Visuals, <uint> Render Distance]) => <string> Hash
-	return UtilityFunctions:WrapObject(...)
-end
-
-Environment.UnwrapObject = UtilityFunctions.UnwrapObject -- (<Instance/string> Object/Hash[, <string> Hash]) => <void>
-
-Environment.RenderCrosshair = CreatingFunctions.Crosshair -- (<void>) => <void>
-
-Environment.RemoveCrosshair = function() -- (<void>) => <void>
-	if not CrosshairParts.LeftLine then
-		return
-	end
-
-	local ServiceConnections = Environment.UtilityAssets.ServiceConnections
-
-	Disconnect(ServiceConnections.UpdateCrosshairProperties)
-	Disconnect(ServiceConnections.UpdateCrosshair)
-
-	for _, RenderObject in next, CrosshairParts do
-		pcall(RenderObject.Remove, RenderObject)
-	end
-
-	CrosshairParts = {}
-end
-
-Environment.WrapPlayers = LoadESP -- (<void>) => <void>
-
-Environment.GetEntry = UtilityFunctions.GetObjectEntry -- (<Instance> Object[, <string> Hash]) => <table> Entry
-
-Environment.Load = function() -- (<void>) => <void>
-	if Loaded then
-		return
-	end
-
-	LoadESP(); CreatingFunctions.Crosshair(); Loaded = true
 end
 
 Environment.UpdateConfiguration = function(DeveloperSettings, Settings, Properties) -- (<table> DeveloperSettings, <table> Settings, <table> Properties) => <table> New Environment
