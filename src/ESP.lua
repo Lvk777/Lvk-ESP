@@ -197,7 +197,7 @@ getgenv().LvkDeveloperESP = {
 		},
 
 		Tracer = {
-			Enabled = true,
+			Enabled = false,
 			RainbowColor = false,
 			RainbowOutlineColor = false,
 			Position = 1, -- 1 = Bottom; 2 = Center; 3 = Mouse
@@ -211,7 +211,7 @@ getgenv().LvkDeveloperESP = {
 		},
 
 		HeadDot = {
-			Enabled = true,
+			Enabled = False,
 			RainbowColor = false,
 			RainbowOutlineColor = false,
 
@@ -230,7 +230,7 @@ getgenv().LvkDeveloperESP = {
 			RainbowColor = false,
 			RainbowOutlineColor = false,
 
-			Color = Color3fromRGB(255, 255, 255),
+			Color = Color3.fromRGB(40, 3, 252),
 			Transparency = 1,
 			Thickness = 1,
 			Filled = false,
@@ -249,12 +249,12 @@ getgenv().LvkDeveloperESP = {
 			Thickness = 1,
 			Transparency = 1,
 
-			OutlineColor = Color3fromRGB(0, 0, 0),
+			OutlineColor = Color3fromRGB(3, 252, 144),
 			Outline = true
 		},
 
 		Crosshair = {
-			Enabled = true,
+			Enabled = false,
 			RainbowColor = false,
 			RainbowOutlineColor = false,
 			TStyled = false,
