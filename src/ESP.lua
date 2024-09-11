@@ -196,35 +196,6 @@ getgenv().LvkDeveloperESP = {
 			DisplayTool = true
 		},
 
-		Tracer = {
-			Enabled = true,
-			RainbowColor = false,
-			RainbowOutlineColor = false,
-			Position = 1, -- 1 = Bottom; 2 = Center; 3 = Mouse
-
-			Transparency = 1,
-			Thickness = 1,
-			Color = Color3fromRGB(255, 255, 255),
-
-			Outline = true,
-			OutlineColor = Color3fromRGB(0, 0, 0)
-		},
-
-		HeadDot = {
-			Enabled = true,
-			RainbowColor = false,
-			RainbowOutlineColor = false,
-
-			Color = Color3fromRGB(255, 255, 255),
-			Transparency = 1,
-			Thickness = 1,
-			NumSides = 30,
-			Filled = false,
-
-			OutlineColor = Color3fromRGB(0, 0, 0),
-			Outline = true
-		},
-
 		Box = {
 			Enabled = true,
 			RainbowColor = false,
@@ -464,109 +435,6 @@ local UpdatingFunctions = {
 		end
 	end,
 
-	Tracer = function(Entry, TracerObject, TracerOutlineObject)
-		local Settings = Environment.Properties.Tracer
-
-		local Position, Size, OnScreen = CoreFunctions.CalculateParameters(Entry)
-
-		SetRenderProperty(TracerObject, "Visible", OnScreen)
-		SetRenderProperty(TracerOutlineObject, "Visible", OnScreen and Settings.Outline)
-
-		if GetRenderProperty(TracerObject, "Visible") then
-			for Index, Value in next, Settings do
-				if Index == "Color" then
-					continue
-				end
-
-				if not pcall(GetRenderProperty, TracerObject, Index) then
-					continue
-				end
-
-				SetRenderProperty(TracerObject, Index, Value)
-			end
-
-			SetRenderProperty(TracerObject, "Color", CoreFunctions.GetColor(Entry.Object, Settings.RainbowColor and CoreFunctions.GetRainbowColor() or Settings.Color))
-
-			local CameraViewportSize = __index(CurrentCamera, "ViewportSize")
-
-			if Settings.Position == 1 then
-				SetRenderProperty(TracerObject, "From", Vector2new(CameraViewportSize.X / 2, CameraViewportSize.Y))
-			elseif Settings.Position == 2 then
-				SetRenderProperty(TracerObject, "From", CameraViewportSize / 2)
-			elseif Settings.Position == 3 then
-				SetRenderProperty(TracerObject, "From", GetMouseLocation())
-			else
-				Settings.Position = 1
-			end
-
-			SetRenderProperty(TracerObject, "To", Vector2new(Position.X + (Size.X / 2), Position.Y + Size.Y))
-
-			if Settings.Outline then
-				SetRenderProperty(TracerOutlineObject, "Color", Settings.RainbowOutlineColor and CoreFunctions.GetRainbowColor() or Settings.OutlineColor)
-				SetRenderProperty(TracerOutlineObject, "Thickness", Settings.Thickness + 1)
-				SetRenderProperty(TracerOutlineObject, "Transparency", Settings.Transparency)
-
-				SetRenderProperty(TracerOutlineObject, "From", GetRenderProperty(TracerObject, "From"))
-				SetRenderProperty(TracerOutlineObject, "To", GetRenderProperty(TracerObject, "To"))
-			end
-		end
-	end,
-
-	HeadDot = function(Entry, CircleObject, CircleOutlineObject)
-		local Settings = Environment.Properties.HeadDot
-
-		local Character = Entry.IsAPlayer and __index(Entry.Object, "Character") or __index(Entry.Object, "Parent")
-		local Head = Character and FindFirstChild(Character, "Head")
-
-		if not Head then
-			SetRenderProperty(CircleObject, "Visible", false)
-			SetRenderProperty(CircleOutlineObject, "Visible", false)
-
-			return
-		end
-
-		local HeadCFrame, HeadSize = __index(Head, "CFrame"), __index(Head, "Size")
-
-		local Vector, OnScreen = WorldToViewportPoint(HeadCFrame.Position)
-		local Top, Bottom = WorldToViewportPoint((HeadCFrame * CFramenew(0, HeadSize.Y / 2, 0)).Position), WorldToViewportPoint((HeadCFrame * CFramenew(0, -HeadSize.Y / 2, 0)).Position)
-
-		SetRenderProperty(CircleObject, "Visible", OnScreen)
-		SetRenderProperty(CircleOutlineObject, "Visible", OnScreen and Settings.Outline)
-
-		if GetRenderProperty(CircleObject, "Visible") then
-			for Index, Value in next, Settings do
-				if stringfind(Index, "Color") then
-					continue
-				end
-
-				if not pcall(GetRenderProperty, CircleObject, Index) then
-					continue
-				end
-
-				SetRenderProperty(CircleObject, Index, Value)
-
-				if Settings.Outline then
-					SetRenderProperty(CircleOutlineObject, Index, Value)
-				end
-			end
-
-			SetRenderProperty(CircleObject, "Color", CoreFunctions.GetColor(Entry.Object, Settings.RainbowColor and CoreFunctions.GetRainbowColor() or Settings.Color))
-
-			SetRenderProperty(CircleObject, "Position", CoreFunctions.ConvertVector(Vector))
-			SetRenderProperty(CircleObject, "Radius", mathabs((Top - Bottom).Y) - 3)
-
-			if Settings.Outline then
-				SetRenderProperty(CircleOutlineObject, "Color", Settings.RainbowOutlineColor and CoreFunctions.GetRainbowColor() or Settings.OutlineColor)
-
-				SetRenderProperty(CircleOutlineObject, "Thickness", Settings.Thickness + 1)
-				SetRenderProperty(CircleOutlineObject, "Transparency", Settings.Transparency)
-
-				SetRenderProperty(CircleOutlineObject, "Position", GetRenderProperty(CircleObject, "Position"))
-				SetRenderProperty(CircleOutlineObject, "Radius", GetRenderProperty(CircleObject, "Radius"))
-			end
-		end
-	end,
-
 	Box = function(Entry, BoxObject, BoxOutlineObject)
 		local Settings = Environment.Properties.Box
 
@@ -727,98 +595,6 @@ local CreatingFunctions = {
 		end)
 	end,
 
-	Tracer = function(Entry)
-		local Allowed = Entry.Allowed
-
-		if type(Allowed) == "table" and type(Allowed.Tracer) == "boolean" and not Allowed.Tracer then
-			return
-		end
-
-		local Settings = Environment.Properties.Tracer
-
-		local Tracer = Drawingnew("Line")
-		local TracerObject = Tracer.__OBJECT
-
-		SetRenderProperty(TracerObject, "ZIndex", Degrade and -2 or -1)
-
-		local TracerOutline = Drawingnew("Line")
-		local TracerOutlineObject = TracerOutline.__OBJECT
-
-		SetRenderProperty(TracerObject, "ZIndex", Degrade and 1 or 0)
-
-		Entry.Visuals.Tracer[1] = Tracer
-		Entry.Visuals.Tracer[2] = TracerOutline
-
-		Entry.Connections.Tracer = Connect(__index(RunService, Environment.DeveloperSettings.UpdateMode), function()
-			local Functionable, Ready = pcall(function()
-				return Environment.Settings.Enabled and Settings.Enabled and Entry.Checks.Ready
-			end)
-
-			if not Functionable then
-				pcall(Tracer.Remove, Tracer)
-				pcall(TracerOutline.Remove, TracerOutline)
-
-				return Disconnect(Entry.Connections.Tracer)
-			end
-
-			if Ready then
-				UpdatingFunctions.Tracer(Entry, TracerObject, TracerOutlineObject)
-			else
-				SetRenderProperty(TracerObject, "Visible", false)
-				SetRenderProperty(TracerOutlineObject, "Visible", false)
-			end
-		end)
-	end,
-
-	HeadDot = function(Entry)
-		local Allowed = Entry.Allowed
-
-		if type(Allowed) == "table" and type(Allowed.HeadDot) == "boolean" and not Allowed.HeadDot then
-			return
-		end
-
-		if not Entry.IsAPlayer and not Entry.PartHasCharacter then
-			if not FindFirstChild(__index(Entry.Object, "Parent"), "Head") then
-				return
-			end
-		end
-
-		local Settings = Environment.Properties.HeadDot
-
-		local Circle = Drawingnew("Circle")
-		local CircleObject = Circle.__OBJECT
-
-		SetRenderProperty(CircleObject, "ZIndex", 2)
-
-		local CircleOutline = Drawingnew("Circle")
-		local CircleOutlineObject = CircleOutline.__OBJECT
-
-		SetRenderProperty(CircleOutlineObject, "ZIndex", 1)
-
-		Entry.Visuals.HeadDot[1] = Circle
-		Entry.Visuals.HeadDot[2] = CircleOutline
-
-		Entry.Connections.HeadDot = Connect(__index(RunService, Environment.DeveloperSettings.UpdateMode), function()
-			local Functionable, Ready = pcall(function()
-				return Environment.Settings.Enabled and Settings.Enabled and Entry.Checks.Ready
-			end)
-
-			if not Functionable then
-				pcall(Circle.Remove, Circle)
-				pcall(CircleOutline.Remove, CircleOutline)
-
-				return Disconnect(Entry.Connections.HeadDot)
-			end
-
-			if Ready then
-				UpdatingFunctions.HeadDot(Entry, CircleObject, CircleOutlineObject)
-			else
-				SetRenderProperty(CircleObject, "Visible", false)
-				SetRenderProperty(CircleOutlineObject, "Visible", false)
-			end
-		end)
-	end,
-
 	Box = function(Entry)
 		local Allowed = Entry.Allowed
 
@@ -909,31 +685,7 @@ local CreatingFunctions = {
 				SetRenderProperty(OutlineObject, "Visible", false)
 			end
 		end)
-	end,
-
-	Crosshair = function()
-		if CrosshairParts.LeftLine then
-			return
-		end
-
-		local ServiceConnections = Environment.UtilityAssets.ServiceConnections
-		local DeveloperSettings = Environment.DeveloperSettings
-		local Settings = Environment.Properties.Crosshair
-
-		CrosshairParts = {
-			LeftLine = Drawingnew("Line"),
-			RightLine = Drawingnew("Line"),
-			TopLine = Drawingnew("Line"),
-			BottomLine = Drawingnew("Line"),
-			CenterDot = Drawingnew("Circle"),
-
-			OutlineLeftLine = Drawingnew("Line"),
-			OutlineRightLine = Drawingnew("Line"),
-			OutlineTopLine = Drawingnew("Line"),
-			OutlineBottomLine = Drawingnew("Line"),
-			OutlineCenterDot = Drawingnew("Circle")
-		}
-
+	end
 		local RenderObjects = {}
 
 		for Index, Value in next, CrosshairParts do
@@ -1254,10 +1006,8 @@ local UtilityFunctions = {
 
 			Visuals = {
 				ESP = {},
-				Tracer = {},
 				Box = {},
 				HealthBar = {},
-				HeadDot = {}
 			},
 
 			Connections = {}
@@ -1293,8 +1043,6 @@ local UtilityFunctions = {
 			until Entry.Checks.Ready
 			
 			CreatingFunctions.ESP(Entry)
-			CreatingFunctions.Tracer(Entry)
-			CreatingFunctions.HeadDot(Entry)
 			CreatingFunctions.Box(Entry)
 			CreatingFunctions.HealthBar(Entry)
 
