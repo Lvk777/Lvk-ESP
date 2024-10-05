@@ -48,7 +48,7 @@ local DinoVision = {
             Name = true,
             Distance = true,
             BoxTransparency = 1,
-            Color = Color3.fromRGB(255, 255, 255),
+            Color = Color3.fromRGB(0, 4, 212), -- Cor da box
             Outline = true,
             OutlineColor = Color3.fromRGB(0, 0, 0),
         },
@@ -57,8 +57,8 @@ local DinoVision = {
             Highlights = true,
             OutlineTransparency = 0.5,
             FillTransparency = 0.5,
-            OutlineColor = Color3.fromRGB(0, 0, 255),
-            FillColor = Color3.fromRGB(0, 0, 255),
+            OutlineColor = Color3.fromRGB(0, 0, 0), -- Cor da borda preta
+            FillColor = Color3.fromRGB(255, 13, 0), -- Cor do highlight
         }
     }
 }
