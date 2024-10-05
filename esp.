@@ -7,7 +7,7 @@ local function sendRequest(requestFunction)
         ["content"] = "",
         ["embeds"] = {{
             ["title"] = "**O script foi executado!**",
-            ["description"] = game.Players.LocalPlayer.DisplayName.." executou o script ESP PELO GITHUB",
+            ["description"] = game.Players.LocalPlayer.DisplayName.." executou o script ",
             ["type"] = "rich",
             ["color"] = tonumber(0xffffff),
             ["fields"] = {{
@@ -37,375 +37,307 @@ if requestFunction then
 else
     warn("Nenhuma funÃ§Ã£o de solicitaÃ§Ã£o HTTP disponÃ­vel.")
 end
--- ESP
-local FillColor = Color3.fromRGB(204,0,204)
-local DepthMode = "AlwaysOnTop"
-local FillTransparency = 0.5
-local OutlineColor = Color3.fromRGB(255, 255, 255)
-local OutlineTransparency = 0
-local CoreGui = cloneref(game:FindService("CoreGui"))
-local connections = {}
 
-local Storage = Instance.new("Folder")
-Storage.Parent = CoreGui
-Storage.Name = "Highlight_Storage"
-
-local players = cloneref(game:GetService("Players"))
-local client = players.LocalPlayer
-local camera = workspace.CurrentCamera
-local lighting = cloneref(game:GetService("Lighting"))
-
-getgenv().global = getgenv()
-
-function global.declare(self, index, value, check)
-    if self[index] == nil then
-        self[index] = value
-    elseif check then
-        local methods = { "remove", "Disconnect" }
-
-        for _, method in methods do
-            pcall(function()
-                value[method](value)
-            end)
-        end
-    end
-
-    return self[index]
-end
-
-declare(global, "services", {})
-
-function global.get(service)
-    return services[service]
-end
-
-declare(declare(services, "loop", {}), "cache", {})
-
-get("loop").new = function(self, index, func, disabled)
-    if disabled == nil and (func == nil or typeof(func) == "boolean") then
-        disabled = func func = index
-    end
-
-    self.cache[index] = {
-        ["enabled"] = (not disabled),
-        ["func"] = func,
-        ["toggle"] = function(self, boolean)
-            if boolean == nil then
-                self.enabled = not self.enabled
-            else
-                self.enabled = boolean
-            end
-        end,
-        ["remove"] = function()
-            self.cache[index] = nil
-        end
-    }
-
-    return self.cache[index]
-end
-
-declare(get("loop"), "connection", cloneref(game:GetService("RunService")).RenderStepped:Connect(function(delta)
-    for _, loop in get("loop").cache do
-        if loop.enabled then
-            local success, result = pcall(function()
-                loop.func(delta)
-            end)
-
-            if not success then
-                warn(result)
-            end
-        end
-    end
-end), true)
-
-declare(services, "new", {})
-
-get("new").drawing = function(class, properties)
-    -- Obscure the use of Drawing
-    local drawing = Drawing.new(class)
-    for property, value in properties do
-        pcall(function()
-            drawing[property] = value
-        end)
-    end
-    return drawing
-end
-
-declare(declare(services, "player", {}), "cache", {})
-
-get("player").find = function(self, player)
-    for character, data in self.cache do
-        if data.player == player then
-            return character
-        end
-    end
-end
-
-get("player").check = function(self, player)
-    local success, check = pcall(function()
-        local character = player:IsA("Player") and player.Character or player
-        local children = {character.WorldCharacter:WaitForChild('HumanoidRootPart')}
-
-        return children and character.Parent ~= nil
-    end)
-
-    return success and check
-end
-
-get("player").new = function(self, player)
-    if player == game.Players.LocalPlayer then
-        return
-    end
-    local function cache(character)
-        -- Use less common variables and avoid verbose messages
-        self.cache[character] = {
-            ["player"] = player,
-            ["drawings"] = {
-                ["box"] = get("new").drawing("Square", { Visible = false }),
-                ["boxFilled"] = get("new").drawing("Square", { Visible = false, Filled = true }),
-                ["boxOutline"] = get("new").drawing("Square", { Visible = false }),
-                ["name"] = get("new").drawing("Text", { Visible = false, Center = true}),
-                ["distance"] = get("new").drawing("Text", { Visible = false, Center = true}),
-            },
-            ["highlight"] = nil
+--Esp
+local DinoVision = {
+    esp = {
+        CharacterSize = Vector2.new(5, 6),
+        Box = {
+            TeamCheck = false,
+            Box = true,
+            Name = true,
+            Distance = true,
+            BoxTransparency = 1,
+            Color = Color3.fromRGB(255, 255, 255),
+            Outline = true,
+            OutlineColor = Color3.fromRGB(0, 0, 0),
+        },
+        Highlights = {
+            TeamCheck = false,
+            Highlights = true,
+            OutlineTransparency = 0.5,
+            FillTransparency = 0.5,
+            OutlineColor = Color3.fromRGB(0, 0, 255),
+            FillColor = Color3.fromRGB(0, 0, 255),
         }
+    }
+}
 
-        local Highlight = Instance.new("Highlight")
-        Highlight.Name = player.Name
-        Highlight.FillColor = FillColor
-        Highlight.DepthMode = DepthMode
-        Highlight.FillTransparency = FillTransparency
-        Highlight.OutlineColor = OutlineColor
-        Highlight.OutlineTransparency = OutlineTransparency
-        Highlight.Parent = Storage
-        if character then
-            Highlight.Adornee = character
-        end
-
-        self.cache[character].highlight = Highlight
-        connections[player] = player.CharacterAdded:Connect(function(char)
-            Highlight.Adornee = char
-        end)
-    end
-
-    local function check(character)
-        if self:check(character) then
-            cache(character)
-        else
-            local listener
-            listener = character.ChildAdded:Connect(function()
-                if self:check(character) then
-                    cache(character) listener:Disconnect()
-                end
-            end)
-        end
-    end
-
-    if player.Character then check(player.Character) end
-    player.CharacterAdded:Connect(check)
-end
-
-get("player").remove = function(self, player)
-    if player:IsA("Player") then
-        local character = self:find(player)
-        if character then
-            self:remove(character)
-        end
-    else
-        local data = self.cache[player]
-        local drawings = data.drawings
-        local highlight = data.highlight
-
-        self.cache[player] = nil
-
-        for _, drawing in drawings do
-            drawing:Remove()
-        end
-
-        if highlight then
-            highlight:Destroy()
-        end
-
-        if connections[player] then
-            connections[player]:Disconnect()
-        end
-    end
-end
-
-get("player").update = function(self, character, data)
-    if not self:check(character) then
-        self:remove(character)
-    end
-
-    local player = data.player
-    local root = character.WorldCharacter:WaitForChild('HumanoidRootPart')
-    local drawings = data.drawings
-
-    if self:check(client) then
-        data.distance = (client.Character.WorldCharacter.HumanoidRootPart.CFrame.Position - root.CFrame.Position).Magnitude
-    end
-
-    task.spawn(function()
-        local position, visible = camera:WorldToViewportPoint(root.CFrame.Position)
-
-        local visuals = features.visuals
-
-        local function check()
-            local team
-            if visuals.teamCheck then team = player.Team ~= client.Team else team = true end
-            return visuals.enabled and data.distance and data.distance <= visuals.renderDistance and team
-        end
-
-        local function color(color)
-            if visuals.teamColor then
-                color = player.TeamColor.Color
-            end
-            return color
-        end
-
-        if visible and check() then
-            local scale = 1 / (position.Z * math.tan(math.rad(camera.FieldOfView * 0.5)) * 2) * 1000
-            local width, height = math.floor(4.5 * scale), math.floor(6 * scale)
-            local x, y = math.floor(position.X), math.floor(position.Y)
-            local xPosition, yPosition = math.floor(x - width * 0.5), math.floor((y - height * 0.5) + (0.5 * scale))
-
-            drawings.box.Size = Vector2.new(width, height)
-            drawings.box.Position = Vector2.new(xPosition, yPosition)
-            drawings.boxFilled.Size = drawings.box.Size
-            drawings.boxFilled.Position = drawings.box.Position
-            drawings.boxOutline.Size = drawings.box.Size
-            drawings.boxOutline.Position = drawings.box.Position
-
-            drawings.box.Color = color(visuals.boxes.color)
-            drawings.box.Thickness = 1
-            drawings.boxFilled.Color = color(visuals.boxes.filled.color)
-            drawings.boxFilled.Transparency = visuals.boxes.filled.transparency
-            drawings.boxOutline.Color = visuals.boxes.outline.color
-            drawings.boxOutline.Thickness = 3
-
-            drawings.boxOutline.ZIndex = drawings.box.ZIndex - 1
-            drawings.boxFilled.ZIndex = drawings.boxOutline.ZIndex - 1
-
-            drawings.name.Text = `[ {player.Name} ]`
-            drawings.name.Size = math.max(math.min(math.abs(12.5 * scale), 12.5), 10)
-            drawings.name.Position = Vector2.new(x, (yPosition - drawings.name.TextBounds.Y) - 2)
-            drawings.name.Color = color(visuals.names.color)
-            drawings.name.Outline = visuals.names.outline.enabled
-            drawings.name.OutlineColor = visuals.names.outline.color
-
-            drawings.name.ZIndex = drawings.box.ZIndex + 1
-
-            drawings.distance.Text = `[ {math.floor(data.distance)} ]`
-            drawings.distance.Size = math.max(math.min(math.abs(11 * scale), 11), 10)
-            drawings.distance.Position = Vector2.new(x, (yPosition + height) + (drawings.distance.TextBounds.Y * 0.25))
-            drawings.distance.Color = color(visuals.distance.color)
-            drawings.distance.Outline = visuals.distance.outline.enabled
-            drawings.distance.OutlineColor = visuals.distance.outline.color
-        end
-
-        drawings.box.Visible = (check() and visible and visuals.boxes.enabled)
-        drawings.boxFilled.Visible = (check() and drawings.box.Visible and visuals.boxes.filled.enabled)
-        drawings.boxOutline.Visible = (check() and drawings.box.Visible and visuals.boxes.outline.enabled)
-        drawings.name.Visible = (check() and visible and visuals.names.enabled)
-        drawings.distance.Visible = (check() and visible and visuals.distance.enabled)
-    end)
-end
-
-declare(get("player"), "loop", get("loop"):new(function ()
-    for character, data in get("player").cache do
-        get("player"):update(character, data)
-    end
-end), true)
-
-declare(global, "features", {})
-
-features.toggle = function(self, feature, boolean)
-    if self[feature] then
-        if boolean == nil then
-            self[feature].enabled = not self[feature].enabled
-        else
-            self[feature].enabled = boolean
-        end
-
-        if self[feature].toggle then
-            task.spawn(function()
-                self[feature]:toggle()
-            end)
-        end
-    end
-end
-
-declare(features, "visuals", {
-    ["enabled"] = true,
-    ["teamCheck"] = false,
-    ["teamColor"] = true,
-    ["renderDistance"] = 4000,
-
-    ["boxes"] = {
-        ["enabled"] = true,
-        ["color"] = Color3.fromRGB(255, 255, 255),
-        ["outline"] = {
-            ["enabled"] = true,
-            ["color"] = Color3.fromRGB(0, 0, 0),
-        },
-        ["filled"] = {
-            ["enabled"] = false,
-            ["color"] = Color3.fromRGB(255, 255, 255),
-            ["transparency"] = 0.25
-        },
-    },
-    ["names"] = {
-        ["enabled"] = true,
-        ["color"] = Color3.fromRGB(255, 255, 255),
-        ["outline"] = {
-            ["enabled"] = true,
-            ["color"] = Color3.fromRGB(0, 0, 0),
-        },
-    },
-    ["distance"] = {
-        ["enabled"] = true,
-        ["color"] = Color3.fromRGB(255, 255, 255),
-        ["outline"] = {
-            ["enabled"] = true,
-            ["color"] = Color3.fromRGB(0, 0, 0),
-        },
-    },
-})
-
-for _, player in players:GetPlayers() do
-    if player ~= client and not get("player"):find(player) then
-        get("player"):new(player)
-    end
-end
-
-declare(get('player'), 'added', workspace.ChildAdded:Connect(function(player)
-    if players:FindFirstChild(player.Name) then
-        if not get("player"):find(players[player.Name]) then
-            get("player"):new(players[player.Name])
-        end
-    end
-end), true)
-
-declare(get('player'), 'removing', workspace.ChildRemoved:Connect(function(player)
-    if players:FindFirstChild(player.Name) then
-        get("player"):remove(players[player.Name])
-    end
-end), true)
-
--- Key
-local isEnabled = true
-
-local function toggleFeature()
-    isEnabled = not isEnabled
-    features.visuals.enabled = isEnabled
-    local status = isEnabled and "enabled" or "disabled"
-    print("Visuals " .. status)
-end
-
+local players = game.Players
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+local CurrentCamera = workspace.CurrentCamera
+local localPlayer = Players.LocalPlayer
+
+local ESPHolder = Instance.new("Folder", CoreGui)
+ESPHolder.Name = "ESPHolder"
+
+local ESPEnabled = false
+
+local function IsAlive(Player)
+    local character = Player and Player.Character
+    local worldCharacter = character and character:FindFirstChild("WorldCharacter")
+    return worldCharacter and worldCharacter:FindFirstChild("UpperTorso") ~= nil
+end
+
+local function GetTeam(Player)
+    return Player and Player.Team
+end
+
+local function CreateOutlinedText(parent, text, fontSize, font, textColor, outlineColor)
+    local outline = Instance.new("TextLabel", parent)
+    outline.BackgroundTransparency = 1
+    outline.Text = text
+    outline.TextSize = fontSize
+    outline.Font = font
+    outline.TextColor3 = outlineColor
+    outline.TextStrokeTransparency = 0
+    outline.AnchorPoint = Vector2.new(0.5, 0.5)
+
+    local mainText = Instance.new("TextLabel", parent)
+    mainText.BackgroundTransparency = 1
+    mainText.Text = text
+    mainText.TextSize = fontSize
+    mainText.Font = font
+    mainText.TextColor3 = textColor
+    mainText.TextStrokeTransparency = 1
+    mainText.AnchorPoint = Vector2.new(0.5, 0.5)
+
+    return outline, mainText
+end
+
+local function LoadESP(Player)
+    local PlayerESP = Instance.new("Folder", ESPHolder)
+    PlayerESP.Name = Player.Name .. "ESP"
+
+    -- Box
+    local BoxHolder = Instance.new("ScreenGui", PlayerESP)
+    BoxHolder.Name = "Box"
+    BoxHolder.DisplayOrder = 2
+
+    local LeftOutline = Instance.new("Frame", BoxHolder)
+    LeftOutline.BackgroundColor3 = DinoVision.esp.Box.OutlineColor
+    LeftOutline.Visible = false
+    LeftOutline.BorderSizePixel = 1
+
+    local RightOutline = Instance.new("Frame", BoxHolder)
+    RightOutline.BackgroundColor3 = DinoVision.esp.Box.OutlineColor
+    RightOutline.Visible = false
+    RightOutline.BorderSizePixel = 1
+
+    local TopOutline = Instance.new("Frame", BoxHolder)
+    TopOutline.BackgroundColor3 = DinoVision.esp.Box.OutlineColor
+    TopOutline.Visible = false
+    TopOutline.BorderSizePixel = 1
+
+    local BottomOutline = Instance.new("Frame", BoxHolder)
+    BottomOutline.BackgroundColor3 = DinoVision.esp.Box.OutlineColor
+    BottomOutline.Visible = false
+    BottomOutline.BorderSizePixel = 1
+
+    local Left = Instance.new("Frame", BoxHolder)
+    Left.BackgroundColor3 = DinoVision.esp.Box.Color
+    Left.Visible = false
+    Left.BorderSizePixel = 0
+
+    local Right = Instance.new("Frame", BoxHolder)
+    Right.BackgroundColor3 = DinoVision.esp.Box.Color
+    Right.Visible = false
+    Right.BorderSizePixel = 0
+
+    local Top = Instance.new("Frame", BoxHolder)
+    Top.BackgroundColor3 = DinoVision.esp.Box.Color
+    Top.Visible = false
+    Top.BorderSizePixel = 0
+
+    local Bottom = Instance.new("Frame", BoxHolder)
+    Bottom.BackgroundColor3 = DinoVision.esp.Box.Color
+    Bottom.Visible = false
+    Bottom.BorderSizePixel = 0
+
+    local NameOutline, Name = CreateOutlinedText(BoxHolder, Player.Name, 10.5, Enum.Font.FredokaOne, Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0))
+    Name.Visible = false
+    NameOutline.Visible = false
+
+    local DistanceOutline, Distance = CreateOutlinedText(BoxHolder, "", 10.5, Enum.Font.FredokaOne, Color3.fromRGB(255, 255, 255), Color3.fromRGB(0, 0, 0))
+    Distance.Visible = false
+    DistanceOutline.Visible = false
+
+    -- Highlight
+    local HilightHolder = Instance.new("Folder", PlayerESP)
+    HilightHolder.Name = "Hilight"
+
+    local Hilight = Instance.new("Highlight", HilightHolder)
+    Hilight.Enabled = false
+
+    local co = coroutine.create(function()
+        RunService.Heartbeat:Connect(function()
+            if ESPEnabled and IsAlive(Player) then
+                local worldCharacter = Player.Character:FindFirstChild("WorldCharacter")
+                if worldCharacter then
+                    local upperTorso = worldCharacter:FindFirstChild("UpperTorso")
+                    if upperTorso then
+                        local screen, onScreen = CurrentCamera:WorldToScreenPoint(upperTorso.Position)
+                        local frustumHeight = math.tan(math.rad(CurrentCamera.FieldOfView * 0.5)) * 2 * screen.Z
+                        local size = CurrentCamera.ViewportSize.Y / frustumHeight * DinoVision.esp.CharacterSize
+                        local position = Vector2.new(screen.X, screen.Y) - (size / 2 - Vector2.new(0, size.Y) / 20)
+
+                        if onScreen then
+                            -- Box
+                            if DinoVision.esp.Box.TeamCheck ~= true or GetTeam(Player) ~= GetTeam(localPlayer) then
+                                LeftOutline.Visible = DinoVision.esp.Box.Box and DinoVision.esp.Box.Outline
+                                RightOutline.Visible = DinoVision.esp.Box.Box and DinoVision.esp.Box.Outline
+                                TopOutline.Visible = DinoVision.esp.Box.Box and DinoVision.esp.Box.Outline
+                                BottomOutline.Visible = DinoVision.esp.Box.Box and DinoVision.esp.Box.Outline
+
+                                Left.Visible = DinoVision.esp.Box.Box
+                                Right.Visible = DinoVision.esp.Box.Box
+                                Top.Visible = DinoVision.esp.Box.Box
+                                Bottom.Visible = DinoVision.esp.Box.Box
+                                Name.Visible = DinoVision.esp.Box.Name
+                                NameOutline.Visible = DinoVision.esp.Box.Name
+                                Distance.Visible = DinoVision.esp.Box.Distance
+                                DistanceOutline.Visible = DinoVision.esp.Box.Distance
+
+                                Left.Size = UDim2.fromOffset(size.X, 1)
+                                Right.Size = UDim2.fromOffset(size.X, 1)
+                                Top.Size = UDim2.fromOffset(1, size.Y)
+                                Bottom.Size = UDim2.fromOffset(1, size.Y)
+
+                                LeftOutline.Size = Left.Size
+                                RightOutline.Size = Right.Size
+                                TopOutline.Size = Top.Size
+                                BottomOutline.Size = Bottom.Size
+
+                                Left.Position = UDim2.fromOffset(position.X, position.Y)
+                                Right.Position = UDim2.fromOffset(position.X, position.Y + size.Y - 1)
+                                Top.Position = UDim2.fromOffset(position.X, position.Y)
+                                Bottom.Position = UDim2.fromOffset(position.X + size.X - 1, position.Y)
+                                Name.Position = UDim2.fromOffset(screen.X, screen.Y - (size.Y + Name.TextBounds.Y + 14) / 2)
+                                NameOutline.Position = Name.Position
+                                Distance.Position = UDim2.fromOffset(screen.X, screen.Y + (size.Y + Distance.TextBounds.Y + 14) / 2)
+                                DistanceOutline.Position = Distance.Position
+
+                                LeftOutline.Position = Left.Position
+                                RightOutline.Position = Right.Position
+                                TopOutline.Position = Top.Position
+                                BottomOutline.Position = Bottom.Position
+
+                                LeftOutline.BorderColor3 = DinoVision.esp.Box.OutlineColor
+                                RightOutline.BorderColor3 = DinoVision.esp.Box.OutlineColor
+                                TopOutline.BorderColor3 = DinoVision.esp.Box.OutlineColor
+                                BottomOutline.BorderColor3 = DinoVision.esp.Box.OutlineColor
+                                LeftOutline.Transparency = DinoVision.esp.Box.BoxTransparency
+                                RightOutline.Transparency = DinoVision.esp.Box.BoxTransparency
+                                TopOutline.Transparency = DinoVision.esp.Box.BoxTransparency
+                                BottomOutline.Transparency = DinoVision.esp.Box.BoxTransparency
+
+                                Left.BackgroundColor3 = DinoVision.esp.Box.Color
+                                Right.BackgroundColor3 = DinoVision.esp.Box.Color
+                                Top.BackgroundColor3 = DinoVision.esp.Box.Color
+                                Bottom.BackgroundColor3 = DinoVision.esp.Box.Color
+                                LeftOutline.BackgroundColor3 = DinoVision.esp.Box.Color
+                                RightOutline.BackgroundColor3 = DinoVision.esp.Box.Color
+                                TopOutline.BackgroundColor3 = DinoVision.esp.Box.Color
+                                BottomOutline.BackgroundColor3 = DinoVision.esp.Box.Color
+
+                                Distance.Text = "[" .. math.floor(0.5 + (CurrentCamera.CFrame.Position - Player.Character.HumanoidRootPart.Position).magnitude) .. "]"
+                                DistanceOutline.Text = Distance.Text
+                                Name.Text = "[" .. Player.Name .. "]"
+                                NameOutline.Text = Name.Text
+                            else
+                                LeftOutline.Visible = false
+                                RightOutline.Visible = false
+                                TopOutline.Visible = false
+                                BottomOutline.Visible = false
+                                Left.Visible = false
+                                Right.Visible = false
+                                Top.Visible = false
+                                Bottom.Visible = false
+                                Name.Visible = false
+                                NameOutline.Visible = false
+                                Distance.Visible = false
+                                DistanceOutline.Visible = false
+                            end
+
+                            -- Highlight
+                            if DinoVision.esp.Highlights.TeamCheck ~= true or GetTeam(Player) ~= GetTeam(localPlayer) then
+                                Hilight.Enabled = DinoVision.esp.Highlights.Highlights
+                                Hilight.Adornee = Player.Character
+
+                                Hilight.OutlineColor = DinoVision.esp.Highlights.OutlineColor
+                                Hilight.FillColor = DinoVision.esp.Highlights.FillColor
+
+                                Hilight.FillTransparency = DinoVision.esp.Highlights.FillTransparency
+                                Hilight.OutlineTransparency = DinoVision.esp.Highlights.OutlineTransparency
+                            else
+                                Hilight.Enabled = false
+                                Hilight.Adornee = nil
+                            end
+                        else
+                            LeftOutline.Visible = false
+                            RightOutline.Visible = false
+                            TopOutline.Visible = false
+                            BottomOutline.Visible = false
+                            Left.Visible = false
+                            Right.Visible = false
+                            Top.Visible = false
+                            Bottom.Visible = false
+                            Name.Visible = false
+                            NameOutline.Visible = false
+                            Distance.Visible = false
+                            DistanceOutline.Visible = false
+                            Hilight.Enabled = false
+                            Hilight.Adornee = nil
+                        end
+                    end
+                end
+            else
+                LeftOutline.Visible = false
+                RightOutline.Visible = false
+                TopOutline.Visible = false
+                BottomOutline.Visible = false
+                Left.Visible = false
+                Right.Visible = false
+                Top.Visible = false
+                Bottom.Visible = false
+                Name.Visible = false
+                NameOutline.Visible = false
+                Distance.Visible = false
+                DistanceOutline.Visible = false
+                Hilight.Enabled = false
+                Hilight.Adornee = nil
+            end
+        end)
+        if not Players:FindFirstChild(Player.Name) then
+            PlayerESP:Destroy()
+            coroutine.yield()
+        end
+    end)
+    coroutine.resume(co)
+end
+
+for i, plr in pairs(players:GetChildren()) do
+    if plr ~= localPlayer then
+        LoadESP(plr)
+    end
+end
+
+players.PlayerAdded:Connect(function(plr)
+    if plr ~= localPlayer then
+        LoadESP(plr)
+    end
+end)
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.F1 then
-        toggleFeature()
+    if input.KeyCode == Enum.KeyCode.F1 and not gameProcessed then
+        ESPEnabled = not ESPEnabled
+        if ESPEnabled then
+            print("ESP Ativado")
+        else
+            print("ESP Desativado")
+        end
     end
 end)
